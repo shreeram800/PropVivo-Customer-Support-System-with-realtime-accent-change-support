@@ -41,8 +41,8 @@ Ensure the following tools and frameworks are installed:
 ### 1. Clone the Repository
 
 ```bash
-git clone <your-repository-url>
-cd <your-repository-directory>
+git clone https://github.com/shreeram800/PropVivo-Customer-Support-System-with-realtime-accent-change-support.git
+cd PropVivo-Customer-Support-System-with-realtime-accent-change-support
 ```
 
 ### 2. Backend Configuration

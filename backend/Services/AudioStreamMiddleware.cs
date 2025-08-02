@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using NAudio.Wave;
 using Whisper.net;
 
@@ -11,29 +12,25 @@ namespace RealtimeAccentTransformer.Middleware;
 public class AudioStreamMiddleware : IDisposable
 {
     private readonly RequestDelegate _next;
-
-    // AI Components - Initialize once and reuse
     private readonly WhisperProcessor _whisperProcessor;
     private readonly MemoryStream _audioBuffer = new();
+    private readonly IServiceScopeFactory _scopeFactory;
 
-    // Configuration
-    private const int SampleRate = 16000; // 16kHz
-    private const int BitDepth = 16;      // 16-bit
-    private const int Channels = 1;       // Mono
-    private const int BufferTriggerSize = SampleRate * 2 * 5; // Process every 5 seconds of audio
+    private const int SampleRate = 16000;
+    private const int BitDepth = 16;
+    private const int Channels = 1;
+    private const int BufferTriggerSize = SampleRate * 2 * 5; // 5 seconds
 
-    public AudioStreamMiddleware(RequestDelegate next)
+    public AudioStreamMiddleware(RequestDelegate next, IServiceScopeFactory scopeFactory)
     {
         _next = next;
+        _scopeFactory = scopeFactory;
 
         var modelPath = Path.Combine(AppContext.BaseDirectory, "AiModels", "ggml-base.en.bin");
         if (!File.Exists(modelPath))
-        {
             throw new FileNotFoundException("Whisper model not found.", modelPath);
-        }
 
-       var whisperFactory = WhisperFactory.FromPath(modelPath);
-
+        var whisperFactory = WhisperFactory.FromPath(modelPath);
         _whisperProcessor = whisperFactory.CreateBuilder()
             .WithLanguage("en")
             .Build();
@@ -49,7 +46,7 @@ public class AudioStreamMiddleware : IDisposable
             {
                 using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
                 Console.WriteLine("WebSocket connection established.");
-                await ProcessAudioStream(webSocket);
+                await ProcessAudioStream(webSocket, context);
             }
             else
             {
@@ -62,14 +59,17 @@ public class AudioStreamMiddleware : IDisposable
         }
     }
 
-    private async Task ProcessAudioStream(WebSocket socket)
+    private async Task ProcessAudioStream(WebSocket socket, HttpContext context)
     {
         var buffer = new byte[1024 * 4];
+
+        // Optionally extract CallId from query or headers
+        var callIdString = context.Request.Query["callId"];
+        int.TryParse(callIdString, out int callId);
 
         while (socket.State == WebSocketState.Open)
         {
             var result = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-
             if (result.MessageType == WebSocketMessageType.Close)
             {
                 await socket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
@@ -80,48 +80,54 @@ public class AudioStreamMiddleware : IDisposable
             var jsonMessage = Encoding.UTF8.GetString(buffer, 0, result.Count);
             using var jsonDoc = JsonDocument.Parse(jsonMessage);
 
-            if (jsonDoc.RootElement.TryGetProperty("event", out var eventElement) && eventElement.GetString() == "media")
+            if (jsonDoc.RootElement.TryGetProperty("event", out var eventElement) &&
+                eventElement.GetString() == "media")
             {
                 string audioPayload = jsonDoc.RootElement.GetProperty("media").GetProperty("payload").GetString();
                 byte[] audioBytes = Convert.FromBase64String(audioPayload);
-
-                // Add incoming audio to our buffer
                 await _audioBuffer.WriteAsync(audioBytes, 0, audioBytes.Length);
 
-                // If buffer is large enough, process it
                 if (_audioBuffer.Length > BufferTriggerSize)
                 {
                     Console.WriteLine("Buffer full, processing audio...");
-                    
-                    // Reset buffer position for reading
                     _audioBuffer.Position = 0;
 
                     var convertedPcmStream = ConvertUl_awToPcm(_audioBuffer);
                     string transcript = await TranscribeAudio(convertedPcmStream);
-
-                    // Clear buffer for next chunks
                     _audioBuffer.SetLength(0);
-                    
+
                     if (!string.IsNullOrWhiteSpace(transcript))
                     {
                         Console.WriteLine($"Transcript: {transcript}");
-                        
-                        // 2. TRANSFORM (Text-to-Speech with American Accent)
                         byte[] americanAccentAudio = await SynthesizeSpeech(transcript);
-                        
+
                         if (americanAccentAudio.Length > 0)
                         {
-                             Console.WriteLine($"Generated {americanAccentAudio.Length} bytes of audio.");
-                            // 3. PLAYBACK TO CUSTOMER (Conceptual)
-                            // This requires using the Twilio REST API to update the call.
-                            // You would host the 'americanAccentAudio' at a public URL
-                            // and use the API to tell Twilio to <Play> that URL.
-                            // Example: await PlayAudioToCall(callSid, publicUrlToAudio);
+                            Console.WriteLine($"Generated {americanAccentAudio.Length} bytes of audio.");
+
+                            // Save audio to a public file (optional)
+                            string tempFile = Path.Combine(Path.GetTempPath(), $"tts_{Guid.NewGuid()}.wav");
+                            await File.WriteAllBytesAsync(tempFile, americanAccentAudio);
+
+                            // Save to DB
+                            using var scope = _scopeFactory.CreateScope();
+                            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+                            var modulation = new VoiceModulation
+                            {
+                                CallId = callId > 0 ? callId : 0,
+                                FromAccent = "Indian",
+                                ToAccent = "American",
+                                Transcript = transcript,
+                                SynthesizedAudioPath = tempFile,
+                                IsRealTime = true,
+                                CreatedAt = DateTime.UtcNow
+                            };
+
+                            db.VoiceModulations.Add(modulation);
+                            await db.SaveChangesAsync();
                         }
                     }
-                    // =================================================================
-                    // 🚀 AI PIPELINE ENDS HERE 🚀
-                    // =================================================================
                 }
             }
         }
@@ -130,25 +136,18 @@ public class AudioStreamMiddleware : IDisposable
     private MemoryStream ConvertUl_awToPcm(MemoryStream ulawStream)
     {
         var outStream = new MemoryStream();
-        // Twilio format: 8kHz, 8-bit, 1-channel, MuLaw
-        var  inFormat = new WaveFormat(8000, 8, 1);
-        // Whisper format: 16kHz, 16-bit, 1-channel, PCM
+        var inFormat = new WaveFormat(8000, 8, 1);
         var outFormat = new WaveFormat(SampleRate, BitDepth, Channels);
 
-        using (var reader = new RawSourceWaveStream(ulawStream, inFormat))
-        {
-            // First, decode from MuLaw to PCM (at 8kHz)
-            var pcmStream = WaveFormatConversionStream.CreatePcmStream(reader);
-            // Then, resample from 8kHz to 16kHz
-            using (var resampler = new MediaFoundationResampler(pcmStream, outFormat))
-            {
-                WaveFileWriter.WriteWavFileToStream(outStream, resampler);
-            }
-        }
+        using var reader = new RawSourceWaveStream(ulawStream, inFormat);
+        var pcmStream = WaveFormatConversionStream.CreatePcmStream(reader);
+        using var resampler = new MediaFoundationResampler(pcmStream, outFormat);
+        WaveFileWriter.WriteWavFileToStream(outStream, resampler);
+
         outStream.Position = 0;
         return outStream;
     }
-    
+
     private async Task<string> TranscribeAudio(Stream pcmAudioStream)
     {
         var transcriptBuilder = new StringBuilder();
@@ -163,8 +162,8 @@ public class AudioStreamMiddleware : IDisposable
     {
         var startInfo = new ProcessStartInfo
         {
-            FileName = "python", // or "python3" depending on your system
-            Arguments = $"synthesize.py \"{text}\"", // Pass text as an argument
+            FileName = "python",
+            Arguments = $"synthesize.py \"{text}\"",
             UseShellExecute = false,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
@@ -174,7 +173,6 @@ public class AudioStreamMiddleware : IDisposable
         using var process = Process.Start(startInfo);
         if (process == null) return Array.Empty<byte>();
 
-        // Read the file path from the script's output
         string outputFilePath = await process.StandardOutput.ReadToEndAsync();
         string errors = await process.StandardError.ReadToEndAsync();
         await process.WaitForExitAsync();
@@ -189,7 +187,7 @@ public class AudioStreamMiddleware : IDisposable
         if (File.Exists(outputFilePath))
         {
             var audioBytes = await File.ReadAllBytesAsync(outputFilePath);
-            File.Delete(outputFilePath); // Clean up the temp file
+            File.Delete(outputFilePath);
             return audioBytes;
         }
 

@@ -1,0 +1,64 @@
+# ====================
+# General Ignored Files
+# ====================
+*.log
+*.tmp
+*.bak
+*.old
+*.db
+*.sqlite
+*.swp
+*.swo
+*.pid
+*.lock
+
+# Ignore Python compiled files (in Services/synthesize.py)
+__pycache__/
+*.pyc
+*.pyo
+
+# ====================
+# Ignore AI Models & Large Files
+# ====================
+# Avoid tracking Whisper/GGML or other model binaries
+*.bin
+*.pt
+*.ckpt
+*.onnx
+*.h5
+
+# Specific model directory
+backend/AiModels/*.bin
+
+# ====================
+# .NET / C# Specific
+# ====================
+# Build and debug output
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# ASP.NET config
+appsettings.Development.json
+appsettings.Local.json
+
+# ====================
+# VSCode and IDE files
+# ====================
+.vscode/
+.idea/
+*.code-workspace
+
+# ====================
+# Docker
+# ====================
+*.env
+docker-compose.override.yml

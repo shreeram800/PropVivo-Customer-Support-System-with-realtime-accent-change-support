@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "dgLq7yqLdazaKtyQkYn/bhBzco1T2BDQlXLGGxS+pTQ=",
+  "Source": "CallAssistantBackend",
+  "BasePath": "_content/CallAssistantBackend",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

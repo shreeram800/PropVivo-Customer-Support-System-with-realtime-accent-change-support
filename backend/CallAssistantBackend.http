@@ -1,0 +1,6 @@
+@CallAssistantBackend_HostAddress = http://localhost:5143
+
+GET {{CallAssistantBackend_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

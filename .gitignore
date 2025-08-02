@@ -1,0 +1,52 @@
+# === Backend ===
+# Ignore large model binaries
+backend/AiModels/*.bin
+
+# Ignore compiled and temp files
+backend/**/*.log
+backend/**/*.tmp
+backend/**/__pycache__/
+backend/**/*.pyc
+
+# Dotenv for sensitive configs
+backend/.env
+
+# === Frontend (React) ===
+# Ignore build output and system files
+frontend/node_modules/
+frontend/build/
+frontend/dist/
+frontend/.env
+frontend/.DS_Store
+
+# === Global ===
+*.swp
+*.swo
+*.log
+*.tmp
+*.bak
+*.old
+*.db
+*.sqlite
+.env
+.DS_Store
+
+# === OS / IDE Specific ===
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# VSCode
+.vscode/
+*.code-workspace
+
+# IntelliJ / JetBrains
+.idea/
+*.iml
+
+# === Git LFS optional files ===
+.gitattributes

@@ -1,70 +1,135 @@
-# Getting Started with Create React App
+# 🎙️ Accent Transformer – Real-Time Indian to American Accent Converter
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This is a full-stack application that allows users to **upload or record audio**, converts **Indian-accented speech to American-accented voice** using **speech-to-text (Vosk)** and **text-to-speech (Piper)**, and plays back the synthesized audio.
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## ✨ Features
 
-### `npm start`
+- Upload or record `.WAV` files
+- Transcribe speech using [Whisper](https://github.com/openai/whisper) or [Vosk](https://alphacephei.com/vosk/)
+- Convert transcript to American-accented audio using [Piper TTS](https://github.com/rhasspy/piper)
+- Play original and converted audio in-browser
+- Real-time capable via WebSocket/SignalR (optional)
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+---
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 📦 Tech Stack
 
-### `npm test`
+| Frontend              | Backend             | Audio Processing   |
+|----------------------|---------------------|---------------------|
+| React.js              | ASP.NET Core (C#)   | Whisper/Vosk (STT)  |
+| HTML5 Audio           | SignalR/WebSocket   | Piper (TTS)         |
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+---
 
-### `npm run build`
+## 🔧 Setup Instructions
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### 1. Clone the Repository
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```bash
+git clone https://github.com/yourusername/accent-transformer.git
+cd accent-transformer
+2. Install Backend Dependencies (C# ASP.NET Core)
+.NET SDK 7.0 or later
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Python (for Whisper or Piper if invoked via subprocess)
 
-### `npm run eject`
+Install NuGet packages:
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+NAudio
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Whisper.net
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+SignalR
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+Swashbuckle.AspNetCore (for Swagger UI, optional)
 
-## Learn More
+3. Download Voice and STT Models
+🔊 Piper US English Small Model
+Model: en_US-small
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Download: en_US-small.onnx
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Config: config.json
 
-### Code Splitting
+Place both files in a folder like: voices/en_US-small/
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+🧠 Vosk STT Model
+Model: vosk-model-small-en-us-0.15
 
-### Analyzing the Bundle Size
+Download: https://alphacephei.com/vosk/models
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+Direct ZIP: Download ZIP
 
-### Making a Progressive Web App
+Extract and place in: stt-models/en-us/
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+4. Install Frontend
+bash
+Copy
+Edit
+cd client
+npm install
+Ensure tailwindcss, react, and any audio libraries (like react-media-recorder) are installed.
 
-### Advanced Configuration
+5. Run the Project
+Backend (C#)
+bash
+Copy
+Edit
+dotnet run
+Frontend (React)
+bash
+Copy
+Edit
+npm run dev
+🧪 Demo Usage
+Visit the frontend page: http://localhost:3000
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+Upload a .wav file or record your voice.
 
-### Deployment
+Click Transform Accent
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+Listen to your original and the transformed American-accented version!
 
-### `npm run build` fails to minify
+📁 File Structure (Simplified)
+bash
+Copy
+Edit
+accent-transformer/
+│
+├── client/                 # React Frontend
+│   └── index.css
+│
+├── RealtimeAccentTransformer/   # .NET Core Backend
+│   ├── Services/
+│   ├── Middleware/
+│   └── SignalR/
+│
+├── voices/
+│   └── en_US-small/
+│       ├── en_US-small.onnx
+│       └── config.json
+│
+├── stt-models/
+│   └── en-us/
+│       └── vosk-model-small-en-us-0.15/
+✅ Dependencies
+Piper
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Vosk
+
+Whisper
+
+SignalR
+
+NAudio
+
+React Media Recorder
+
+📄 License
+MIT License
+
+🙋‍♂️ Author
+Shree Ram
+Passionate Full Stack Developer – Java | React | .NET | Audio AI

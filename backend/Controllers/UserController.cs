@@ -10,7 +10,6 @@ public class UsersController : ControllerBase
     {
         _repo = repo;
     }
-
     [HttpPost]
     public async Task<IActionResult> CreateUser([FromBody] User user)
     {

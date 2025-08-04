@@ -1,33 +1,43 @@
-using Microsoft.EntityFrameworkCore;
+using RealtimeAccentTransformer.Hubs;
+using RealtimeAccentTransformer.Interfaces;
+using RealtimeAccentTransformer.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add services to the container.
 builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
 builder.Services.AddSignalR();
 
+// IMPORTANT: Register VoskProcessor as a Singleton to load the model only once.
+builder.Services.AddSingleton<IVoskProcessor, VoskProcessor>();
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+// Register PiperTtsService as Scoped or Transient, as it's lightweight.
+builder.Services.AddScoped<IPiperTtsService, PiperTtsService>();
 
-builder.Services.AddScoped<IUserRepository, UserRepository>();
+// Add configuration for Piper settings if you create an appsettings.json section
+/* Example appsettings.json:
+"Piper": {
+  "PythonExecutable": "C:\\Users\\YourUser\\AppData\\Local\\Programs\\Python\\Python39\\python.exe",
+  "ScriptPath": "Scripts/synthesize.py",
+  "ModelPath": "AiModels/en_US-lessac-medium.onnx"
+}
+*/
+builder.Services.AddOptions();
+
 
 var app = builder.Build();
 
-// Use middleware
+// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseDeveloperExceptionPage();
 }
 
-app.UseHttpsRedirection();
+app.UseRouting();
+
 app.UseAuthorization();
 
-
 app.MapControllers();
-app.MapHub<CallNotificationHub>("/callHub");
+app.MapHub<AudioHub>("/audiohub"); // Map the SignalR hub
 
 app.Run();

@@ -1,0 +1,149 @@
+/* Reset & Base styles */
+body {
+  margin: 0;
+  font-family: sans-serif;
+  background-color: #0f172a; /* slate-900 */
+  color: white;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.container {
+  width: 100%;
+  max-width: 640px;
+  background-color: #1e293b; /* slate-800 */
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+h1 {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #38bdf8; /* sky-400 */
+  text-align: center;
+}
+
+p.description {
+  color: #94a3b8; /* slate-400 */
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
+.button {
+  font-weight: bold;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.button-upload {
+  background-color: #0ea5e9; /* sky-500 */
+  color: white;
+}
+
+.button-upload:hover {
+  background-color: #0284c7; /* sky-600 */
+}
+
+.button-record {
+  background-color: #6366f1; /* indigo-500 */
+  color: white;
+}
+
+.button-record:hover {
+  background-color: #4f46e5; /* indigo-600 */
+}
+
+.button-recording {
+  background-color: #dc2626; /* red-600 */
+}
+
+.button-recording:hover {
+  background-color: #b91c1c; /* red-700 */
+}
+
+.button-submit {
+  background-color: #16a34a; /* green-600 */
+  color: white;
+  width: 100%;
+  padding: 0.75rem;
+}
+
+.button-submit:hover {
+  background-color: #15803d; /* green-700 */
+}
+
+.button:disabled {
+  background-color: #334155; /* slate-700 */
+  cursor: not-allowed;
+}
+
+/* Dotted border box */
+.audio-box {
+  border: 2px dashed #475569; /* slate-600 */
+  border-radius: 1rem;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.audio-box .message {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  height: 1.25rem;
+  color: #94a3b8; /* slate-500 */
+}
+
+/* Error message */
+.error {
+  background-color: rgba(185, 28, 28, 0.3);
+  border: 1px solid #7f1d1d;
+  color: #fca5a5;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  text-align: center;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Section headers */
+.section-title {
+  font-size: 1.125rem;
+  font-weight: bold;
+  color: #38bdf8;
+  margin-bottom: 0.5rem;
+}
+
+/* Transcription box */
+.transcript-box {
+  background-color: #0f172a;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  color: #cbd5e1; /* slate-300 */
+  font-style: italic;
+}
+
+/* Spinner animation */
+.spinner {
+  height: 1.5rem;
+  width: 1.5rem;
+  border-radius: 9999px;
+  border-bottom: 2px solid white;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Audio player full width */
+audio {
+  width: 100%;
+  margin-top: 0.5rem;
+}

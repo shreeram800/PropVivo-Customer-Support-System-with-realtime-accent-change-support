@@ -7,7 +7,7 @@ This is a full-stack application that allows users to **upload or record audio**
 ## ✨ Features
 
 - Upload or record `.WAV` files
-- Transcribe speech using [Whisper](https://github.com/openai/whisper) or [Vosk](https://alphacephei.com/vosk/)
+- Transcribe speech using [Vosk](https://alphacephei.com/vosk/)
 - Convert transcript to American-accented audio using [Piper TTS](https://github.com/rhasspy/piper)
 - Play original and converted audio in-browser
 - Real-time capable via WebSocket/SignalR (optional)

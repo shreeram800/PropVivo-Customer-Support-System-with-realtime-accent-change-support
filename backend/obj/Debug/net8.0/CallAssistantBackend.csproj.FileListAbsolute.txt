@@ -529,3 +529,4 @@ D:\CoustomerSupport\backend\bin\Debug\net8.0\AiModels\vosk-model-small-en-in-0.4
 D:\CoustomerSupport\backend\bin\Debug\net8.0\AiModels\vosk-model-small-en-in-0.4\ivector\online_cmvn.conf
 D:\CoustomerSupport\backend\bin\Debug\net8.0\AiModels\vosk-model-small-en-in-0.4\ivector\splice.conf
 D:\CoustomerSupport\backend\bin\Debug\net8.0\AiModels\vosk-model-small-en-in-0.4\README
+D:\CoustomerSupport\backend\bin\Debug\net8.0\piper-voices\.git\FETCH_HEAD

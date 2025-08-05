@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CallAssistantBackend")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3f485eb3b79919e8c48894cf073cd69ae7fd7534")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ff0074241f4861a90e6399d77617537d4bf5783d")]
 [assembly: System.Reflection.AssemblyProductAttribute("CallAssistantBackend")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CallAssistantBackend")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

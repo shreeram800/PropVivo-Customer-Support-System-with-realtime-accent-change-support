@@ -1,12 +1,10 @@
 using Microsoft.AspNetCore.SignalR;
 using RealtimeAccentTransformer.Interfaces;
-using System.Collections.Concurrent;
 
 namespace RealtimeAccentTransformer.Hubs
 {
     public class AudioHub : Hub
     {
-        private static readonly ConcurrentDictionary<string, string> userConnections = new();
         private readonly IVoskProcessor _voskProcessor;
         private readonly IPiperTtsService _piperTtsService;
 
@@ -16,84 +14,56 @@ namespace RealtimeAccentTransformer.Hubs
             _piperTtsService = piperTtsService;
         }
 
-        public async Task Register(string userId)
+        public override async Task OnConnectedAsync()
         {
-            userConnections[userId] = Context.ConnectionId;
-            Console.WriteLine($"✅ User '{userId}' registered with connection ID {Context.ConnectionId}");
+            Console.WriteLine($"✅ Client connected: {Context.ConnectionId}");
             await base.OnConnectedAsync();
         }
 
-        // Agent sends audio, which is transformed and sent to the user.
-        // Audio is expected as base64 encoded µ-law bytes.
-        public async Task SendAgentAudio(string base64UlawAudio, string targetUserId)
+        public override async Task OnDisconnectedAsync(Exception? exception)
         {
-            if (!userConnections.TryGetValue(targetUserId, out var targetConnectionId))
-            {
-                Console.WriteLine($"⚠️ Target user '{targetUserId}' not found.");
-                return;
-            }
-            
-            Console.WriteLine($"🎙️ Received agent audio for user '{targetUserId}'. Processing...");
+            Console.WriteLine($"❌ Client disconnected: {Context.ConnectionId}");
+            await base.OnDisconnectedAsync(exception);
+        }
 
+        // ✅ Accepts base64-encoded string
+        public async Task SendAudio(string base64Audio)
+        {
             try
             {
-                // 1. Decode Base64 and convert µ-law to PCM
-                var ulawBytes = Convert.FromBase64String(base64UlawAudio);
-                using var ulawStream = new MemoryStream(ulawBytes);
-                using var pcmStream = _voskProcessor.ConvertUlawToPcm(ulawStream);
+                Console.WriteLine("📥 Received base64 audio from client");
 
-                // 2. Transcribe the PCM audio to text
-                var transcript = await _voskProcessor.TranscribeAsync(pcmStream);
+                byte[] audioData = Convert.FromBase64String(base64Audio);
+
+                await using var stream = new MemoryStream(audioData);
+
+                // Transcribe using Vosk
+                var transcript = await _voskProcessor.TranscribeAsync(stream);
+
                 if (string.IsNullOrWhiteSpace(transcript))
                 {
-                    Console.WriteLine("📝 Transcription resulted in empty text. Nothing to synthesize.");
+                    await Clients.Caller.SendAsync("ReceiveTranscript", "", "No speech detected.");
                     return;
                 }
-                Console.WriteLine($"📝 Transcript: '{transcript}'");
-                await Clients.Caller.SendAsync("ReceiveTranscript", transcript); // Send transcript back to agent for UI
 
-                // 3. Synthesize new audio from the text
-                var synthesizedAudioBytes = await _piperTtsService.SynthesizeAsync(transcript);
-                if (synthesizedAudioBytes == null || synthesizedAudioBytes.Length == 0)
+                // Synthesize using Piper
+                var synthesizedAudio = await _piperTtsService.SynthesizeAsync(transcript);
+
+                if (synthesizedAudio == null)
                 {
-                    Console.WriteLine("❌ TTS synthesis failed or produced empty audio.");
+                    await Clients.Caller.SendAsync("Error", "Failed to synthesize audio.");
                     return;
                 }
-                Console.WriteLine($"🔊 Synthesis successful ({synthesizedAudioBytes.Length} bytes). Sending to user.");
 
-                // 4. Send the synthesized audio to the target user
-                var synthesizedAudioBase64 = Convert.ToBase64String(synthesizedAudioBytes);
-                await Clients.Client(targetConnectionId).SendAsync("ReceiveSynthesizedAudio", synthesizedAudioBase64);
+                // ✅ Return transcript and synthesized audio (base64)
+                await Clients.Caller.SendAsync("ReceiveTranscript", transcript, null);
+                await Clients.Caller.SendAsync("ReceiveSynthesizedAudio", synthesizedAudio);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ An error occurred in SendAgentAudio: {ex.Message}");
-                await Clients.Caller.SendAsync("ProcessingError", "An error occurred during audio processing.");
+                Console.WriteLine("❌ Error in SendAudio: " + ex.Message);
+                await Clients.Caller.SendAsync("Error", $"Internal error: {ex.Message}");
             }
-        }
-
-        // User sends audio, which is relayed directly to the agent.
-        public async Task SendUserAudio(string base64RawAudio, string targetAgentId)
-        {
-            if (!userConnections.TryGetValue(targetAgentId, out var targetConnectionId))
-            {
-                Console.WriteLine($"⚠️ Target agent '{targetAgentId}' not found.");
-                return;
-            }
-
-            // Directly relay the raw audio without processing
-            await Clients.Client(targetConnectionId).SendAsync("ReceiveRawAudio", base64RawAudio);
-        }
-
-        public override Task OnDisconnectedAsync(Exception? exception)
-        {
-            var item = userConnections.FirstOrDefault(kvp => kvp.Value == Context.ConnectionId);
-            if (!item.Equals(default(KeyValuePair<string, string>)))
-            {
-                userConnections.TryRemove(item.Key, out _);
-                Console.WriteLine($"🚫 User '{item.Key}' disconnected.");
-            }
-            return base.OnDisconnectedAsync(exception);
         }
     }
 }

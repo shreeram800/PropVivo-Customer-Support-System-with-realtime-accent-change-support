@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.18" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.1.0" /> <!-- Note: Updated to a more standard version for net8.0 -->
+    <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.2.0" /> <!-- Note: Updated to a more standard version for net8.0 -->
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.7" /> <!-- Note: Matched to net8.0 -->
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.7">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

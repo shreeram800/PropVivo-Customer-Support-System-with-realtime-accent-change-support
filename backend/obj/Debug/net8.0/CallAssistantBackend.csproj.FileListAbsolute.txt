@@ -530,3 +530,9 @@ D:\CoustomerSupport\backend\bin\Debug\net8.0\AiModels\vosk-model-small-en-in-0.4
 D:\CoustomerSupport\backend\bin\Debug\net8.0\AiModels\vosk-model-small-en-in-0.4\ivector\splice.conf
 D:\CoustomerSupport\backend\bin\Debug\net8.0\AiModels\vosk-model-small-en-in-0.4\README
 D:\CoustomerSupport\backend\bin\Debug\net8.0\piper-voices\.git\FETCH_HEAD
+D:\CoustomerSupport\backend\bin\Debug\net8.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll
+D:\CoustomerSupport\backend\bin\Debug\net8.0\Microsoft.Extensions.Diagnostics.Abstractions.dll
+D:\CoustomerSupport\backend\bin\Debug\net8.0\Microsoft.Extensions.Hosting.Abstractions.dll
+D:\CoustomerSupport\backend\bin\Debug\net8.0\Microsoft.Extensions.Logging.Abstractions.dll
+D:\CoustomerSupport\backend\bin\Debug\net8.0\Microsoft.Extensions.ObjectPool.dll
+D:\CoustomerSupport\backend\bin\Debug\net8.0\Microsoft.Extensions.Options.dll

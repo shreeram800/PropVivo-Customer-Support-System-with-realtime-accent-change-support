@@ -2,42 +2,52 @@ using RealtimeAccentTransformer.Hubs;
 using RealtimeAccentTransformer.Interfaces;
 using RealtimeAccentTransformer.Services;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Register controllers
 builder.Services.AddControllers();
+
+// Register SignalR
 builder.Services.AddSignalR();
 
-// IMPORTANT: Register VoskProcessor as a Singleton to load the model only once.
+// Register VoskProcessor as Singleton (loads model once)
 builder.Services.AddSingleton<IVoskProcessor, VoskProcessor>();
 
-// Register PiperTtsService as Scoped or Transient, as it's lightweight.
+// Register PiperTTS as Scoped (recreated per request)
 builder.Services.AddScoped<IPiperTtsService, PiperTtsService>();
 
-// Add configuration for Piper settings if you create an appsettings.json section
-/* Example appsettings.json:
-"Piper": {
-  "PythonExecutable": "C:\\Users\\YourUser\\AppData\\Local\\Programs\\Python\\Python39\\python.exe",
-  "ScriptPath": "Scripts/synthesize.py",
-  "ModelPath": "AiModels/en_US-lessac-medium.onnx"
-}
-*/
+// Optional: load Piper config from appsettings.json
 builder.Services.AddOptions();
 
+// CORS for frontend (adjust origin as needed)
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials()
+            .SetIsOriginAllowed(_ => true); // Change to specific frontend origin if needed
+    });
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Use developer exception page in dev environment
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
 }
 
 app.UseRouting();
-
+app.UseCors("AllowFrontend");
 app.UseAuthorization();
 
+// Map routes
 app.MapControllers();
-app.MapHub<AudioHub>("/audiohub"); // Map the SignalR hub
+app.MapHub<AudioHub>("/audiohub"); // WebSocket route
+
 
 app.Run();
